@@ -1,0 +1,63 @@
+{
+  "name": "WiseAI - Hello starter",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "a0000000-0000-4000-8000-000000000001",
+      "name": "When clicking \"Execute workflow\""
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1",
+              "name": "message",
+              "value": "Hello WiseAI — Compose OK",
+              "type": "string"
+            },
+            {
+              "id": "b2",
+              "name": "atelier",
+              "value": "Mars 2026",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 0],
+      "id": "a0000000-0000-4000-8000-000000000002",
+      "name": "Set contexte atelier"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking \"Execute workflow\"": {
+      "main": [
+        [
+          {
+            "node": "Set contexte atelier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "wiseai-starter-v1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "wiseai-exports-local"
+  },
+  "tags": []
+}

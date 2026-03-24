@@ -1,0 +1,47 @@
+# =============================================================================
+# Spécification Docker Compose — service n8n (Atelier WiseAI)
+# Référence méthodologique : DEPLOY.md — cadre pédagogique : doc.m
+# =============================================================================
+# Usage courant :   docker compose up -d
+# Arrêt contrôlé :  docker compose stop
+# Journalisation :  docker compose logs -f n8n
+# =============================================================================
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: wiseai-n8n
+    restart: unless-stopped
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      # Clé de chiffrement des identifiants applicatifs (obligatoire en usage
+      # récurrent — variable N8N_ENCRYPTION_KEY dans le fichier .env)
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-}
+      # Paramètres d'accessibilité réseau et de génération des URL de webhook
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+      - WEBHOOK_URL=${WEBHOOK_URL:-}
+      # Référence temporelle pour planifications et journaux d'exécution
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-Europe/Paris}
+      # Moteur d'exécution des nœuds (recommandation : activé sur versions récentes)
+      - N8N_RUNNERS_ENABLED=${N8N_RUNNERS_ENABLED:-true}
+    volumes:
+      - n8n_data:/home/node/.n8n
+    # Vérification d'état : runtime Node 18+ (API fetch native). Point de
+    # contrôle documenté : GET /healthz — voir documentation n8n (monitoring).
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:5678/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 50s
+
+volumes:
+  n8n_data:
+    name: wiseai_n8n_data
