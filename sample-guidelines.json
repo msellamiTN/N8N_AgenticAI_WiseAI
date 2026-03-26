@@ -1,0 +1,62 @@
+[
+  {
+    "text": "Chest Pain Assessment: HEART Score - History (highly suspicious=2, moderately=1, slightly=0), ECG (significant ST changes=2, non-specific=1, normal=0), Age (≥65=2, 45-64=1, <45=0), Risk factors (≥3=2, 1-2=1, none=0), Troponin (>3x normal=2, 1-3x=1, normal=0). Score ≥7: High risk (>50% MACE at 30 days). Score 4-6: Moderate risk (12-17% MACE). Score 0-3: Low risk (<2% MACE). Consider early discharge for low-risk patients.",
+    "source": "ESC Guidelines 2020",
+    "category": "Cardiology",
+    "guideline_id": "HEART-001"
+  },
+  {
+    "text": "NEWS2 Scoring System: Respiratory rate (≤8 or ≥25=3 points, 9-11 or 21-24=2 points, 12-20=0 points), SpO2 (≤91=3, 92-93=2, 94-95=1, ≥96=0), Supplemental oxygen (yes=2, no=0), Systolic BP (≤90 or ≥220=3, 91-100=2, 101-110=1, 111-219=0), Heart rate (≤40 or ≥131=3, 41-50 or 111-130=1, 51-90=0, 91-110=1), Consciousness (Alert=0, CVPU=3), Temperature (≤35.0 or ≥39.1=3, 35.1-36.0 or 38.1-39.0=1, 36.1-38.0=0). Aggregate score: 0-4=Low clinical risk, 5-6=Medium risk (urgent response), ≥7=High risk (emergency response).",
+    "source": "Royal College of Physicians UK",
+    "category": "Emergency Medicine",
+    "guideline_id": "NEWS2-001"
+  },
+  {
+    "text": "Acute Coronary Syndrome Recognition and Management: Red flags include sudden onset chest pain with radiation to jaw/left arm/back, diaphoresis, nausea, dyspnea, sense of impending doom. ECG changes: ST elevation (STEMI), ST depression, T-wave inversion, new LBBB. Troponin elevation indicates myocardial injury. Immediate actions: Aspirin 300mg loading dose, oxygen if SpO2<94%, establish IV access, obtain 12-lead ECG within 10 minutes of presentation, activate catheterization laboratory for STEMI, consider P2Y12 inhibitor (clopidogrel/ticagrelor), anticoagulation with heparin or LMWH.",
+    "source": "AHA/ACC Guidelines 2021",
+    "category": "Cardiology",
+    "guideline_id": "ACS-001"
+  },
+  {
+    "text": "Sepsis Recognition and Management (qSOFA Criteria): Quick SOFA includes altered mental status (GCS<15), systolic blood pressure ≤100 mmHg, respiratory rate ≥22/min. If ≥2 criteria present outside ICU, suspect sepsis and calculate full SOFA score. Immediate management bundle (within 1 hour): Obtain blood cultures before antibiotics, administer broad-spectrum antibiotics, measure lactate level, begin rapid fluid resuscitation with 30ml/kg crystalloid for hypotension or lactate ≥4 mmol/L. Apply vasopressors if hypotensive during or after fluid resuscitation to maintain MAP ≥65 mmHg. Source control within 12 hours.",
+    "source": "Surviving Sepsis Campaign 2021",
+    "category": "Infectious Disease",
+    "guideline_id": "SEPSIS-001"
+  },
+  {
+    "text": "Stroke Assessment and Acute Management (FAST Protocol): Face drooping (ask patient to smile), Arm weakness (ask to raise both arms), Speech difficulty (ask to repeat simple sentence), Time to call emergency services. Additional warning signs: sudden severe headache with no known cause, sudden vision loss in one or both eyes, sudden confusion or trouble understanding, sudden trouble walking, dizziness, loss of balance or coordination. Immediate actions: Activate stroke code, obtain non-contrast CT or MRI within 20 minutes to rule out hemorrhage, check eligibility for IV alteplase (tPA) if within 4.5 hours of symptom onset, consider mechanical thrombectomy for large vessel occlusion within 24 hours in selected patients. Blood pressure management: avoid aggressive lowering unless >220/120 mmHg or candidate for thrombolysis.",
+    "source": "AHA/ASA Stroke Guidelines 2019",
+    "category": "Neurology",
+    "guideline_id": "STROKE-001"
+  },
+  {
+    "text": "Anaphylaxis Recognition and Emergency Treatment: Diagnostic criteria include acute onset (minutes to hours) with involvement of skin/mucosa (hives, pruritus, flushing, angioedema) PLUS one of: respiratory compromise (dyspnea, wheeze, stridor, hypoxemia), reduced blood pressure or end-organ dysfunction (hypotonia, syncope, incontinence), or persistent gastrointestinal symptoms. Immediate management: Intramuscular epinephrine 0.3-0.5mg (1:1000) into mid-outer thigh, repeat every 5-15 minutes as needed. Place patient supine with legs elevated. Administer high-flow oxygen, establish IV access, give IV fluid bolus for hypotension. Secondary treatments: H1 antihistamine (diphenhydramine 25-50mg), H2 antihistamine (ranitidine 50mg), corticosteroid (methylprednisolone 125mg IV). Monitor for biphasic reaction (4-6 hours). Prescribe epinephrine auto-injector on discharge.",
+    "source": "World Allergy Organization Guidelines",
+    "category": "Allergy/Immunology",
+    "guideline_id": "ANAPH-001"
+  },
+  {
+    "text": "Diabetic Ketoacidosis (DKA) Diagnosis and Management: Diagnostic triad: hyperglycemia (glucose >250 mg/dL), metabolic acidosis (pH <7.3, bicarbonate <18 mEq/L), ketonemia/ketonuria. Clinical features: polyuria, polydipsia, weight loss, nausea, vomiting, abdominal pain, Kussmaul respirations, altered mental status. Initial management: Fluid resuscitation with 0.9% saline 1-1.5L in first hour, then 250-500 mL/hr adjusted for hydration status. Insulin therapy: IV regular insulin 0.1 units/kg bolus, then 0.1 units/kg/hr continuous infusion. When glucose reaches 200-250 mg/dL, add dextrose to fluids and reduce insulin to 0.02-0.05 units/kg/hr. Potassium replacement: if K+ <3.3 mEq/L, hold insulin and give potassium; if 3.3-5.2, add 20-30 mEq to each liter of fluid. Monitor glucose hourly, electrolytes and venous pH every 2-4 hours. Resolution criteria: glucose <200 mg/dL, bicarbonate ≥18 mEq/L, pH >7.3, anion gap ≤12.",
+    "source": "ADA Clinical Practice Guidelines",
+    "category": "Endocrinology",
+    "guideline_id": "DKA-001"
+  },
+  {
+    "text": "Pulmonary Embolism Risk Stratification (Wells Score): Clinical signs of DVT (3 points), PE most likely diagnosis (3 points), heart rate >100 bpm (1.5 points), immobilization/surgery in past 4 weeks (1.5 points), previous DVT/PE (1.5 points), hemoptysis (1 point), malignancy (1 point). Score >4: PE likely, proceed to CTPA. Score ≤4: PE unlikely, check D-dimer first. High-risk PE (massive): systolic BP <90 mmHg or drop ≥40 mmHg for >15 minutes, requiring inotropes, with signs of shock. Intermediate-risk: normotensive with RV dysfunction on echo or elevated troponin/BNP. Low-risk: normotensive without RV dysfunction. Treatment: High-risk requires thrombolysis or embolectomy. Intermediate/low-risk: anticoagulation with LMWH, fondaparinux, or DOAC (rivaroxaban, apixaban). Consider IVC filter if anticoagulation contraindicated.",
+    "source": "ESC Guidelines on Pulmonary Embolism",
+    "category": "Pulmonology",
+    "guideline_id": "PE-001"
+  },
+  {
+    "text": "Acute Asthma Exacerbation Severity Assessment and Management: Mild: speaks in sentences, prefers sitting to lying, not agitated, RR increased, accessory muscles not used, pulse <100, SpO2 >95%, PEF >50% predicted. Moderate: speaks in phrases, prefers sitting, usually agitated, RR increased, accessory muscles usually used, pulse 100-120, SpO2 90-95%, PEF 25-50%. Severe: speaks in words, sits hunched forward, usually agitated, RR >30/min, accessory muscles usually used, pulse >120, SpO2 <90%, PEF <25%, silent chest. Life-threatening: unable to speak, exhausted, confused/drowsy, RR variable, poor respiratory effort, bradycardia, SpO2 <90%, PEF <25%, cyanosis. Immediate treatment: High-flow oxygen to maintain SpO2 94-98%, nebulized salbutamol 5mg (can repeat every 20 minutes), ipratropium bromide 500mcg nebulized, oral/IV corticosteroids (prednisolone 40-50mg or hydrocortisone 100mg IV). For severe/life-threatening: IV magnesium sulfate 2g over 20 minutes, consider IV salbutamol, prepare for intubation. Admit if poor response to initial treatment.",
+    "source": "British Thoracic Society Guidelines",
+    "category": "Pulmonology",
+    "guideline_id": "ASTHMA-001"
+  },
+  {
+    "text": "Acute Gastrointestinal Bleeding Risk Stratification (Glasgow-Blatchford Score): Blood urea (≥6.5 mmol/L=2 points, ≥8.0=3, ≥10.0=4, ≥25.0=6), Hemoglobin for men (≥12.0 g/dL=0, 10.0-11.9=1, <10.0=6) and women (≥10.0=0, <10.0=1), Systolic BP (≥110 mmHg=0, 100-109=1, 90-99=2, <90=3), Pulse (≥100 bpm=1), Melena (1), Syncope (2), Hepatic disease (2), Cardiac failure (2). Score 0: very low risk, consider outpatient management. Score ≥1: requires admission and likely intervention. Score ≥6: high risk, needs urgent endoscopy within 24 hours. Initial management: two large-bore IV lines, crystalloid resuscitation targeting Hgb 7-9 g/dL (restrictive strategy), transfuse PRBCs if Hgb <7 g/dL, correct coagulopathy (FFP, vitamin K, platelet transfusion if <50,000), PPI infusion (pantoprazole 80mg bolus then 8mg/hr), octreotide if variceal bleeding suspected. NPO status, GI consultation for endoscopy.",
+    "source": "ACG Guidelines on GI Bleeding",
+    "category": "Gastroenterology",
+    "guideline_id": "GIB-001"
+  }
+]
