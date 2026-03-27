@@ -95,7 +95,7 @@ def upload_guidelines():
     print("\n📚 Uploading clinical guidelines...")
     
     try:
-        with open('sample-guidelines.json', 'r', encoding='utf-8') as f:
+        with open('data/guidelines/sample-guidelines.json', 'r', encoding='utf-8') as f:
             guidelines = json.load(f)
     except FileNotFoundError:
         print("❌ sample-guidelines.json not found")
@@ -147,7 +147,7 @@ def upload_cases():
     print("\n🏥 Uploading clinical cases...")
     
     try:
-        with open('sample-cases.json', 'r', encoding='utf-8') as f:
+        with open('data/cases/sample-cases.json', 'r', encoding='utf-8') as f:
             cases = json.load(f)
     except FileNotFoundError:
         print("❌ sample-cases.json not found")
@@ -307,3 +307,4 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Unexpected error: {e}")
         sys.exit(1)
+

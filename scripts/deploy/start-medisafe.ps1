@@ -114,9 +114,12 @@ if (Test-Path ".env") {
 # ── Step 3: Start Docker Services ──
 Write-Host "`n[3/7] Starting Docker services (profile: $Profile)..." -ForegroundColor Yellow
 
+# Navigate to project root
+Set-Location (Join-Path $PSScriptRoot "../..")
+
 try {
     # Use --env-file to explicitly pass .env to Docker Compose
-    docker compose --env-file .env --profile $Profile up -d
+    docker compose -f config/docker-compose.yml --env-file .env --profile $Profile up -d
     if ($LASTEXITCODE -ne 0) {
         throw "Docker Compose failed"
     }
@@ -191,7 +194,7 @@ if ($retryCount -ge $maxRetries) {
 Write-Host "`n[5/7] Initializing PostgreSQL database..." -ForegroundColor Yellow
 
 try {
-    Get-Content "init-db.sql" | docker exec -i postgres psql -U n8n_user -d n8n 2>&1 | Out-Null
+    Get-Content "config/database/init-db.sql" | docker exec -i postgres psql -U n8n_user -d n8n 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  ✅ Database schema created" -ForegroundColor Green
     } else {
@@ -235,7 +238,7 @@ if (-not $SkipVectorUpload) {
         python -m pip install --quiet requests 2>$null
         
         # Run upload script
-        python upload-vectors.py
+        python scripts/data/upload-vectors.py
         if ($LASTEXITCODE -eq 0) {
             Write-Host "  ✅ Vector data uploaded successfully" -ForegroundColor Green
         } else {
@@ -267,3 +270,4 @@ Write-Host "  docker compose --profile $Profile down" -ForegroundColor White
 Write-Host "`nTo view logs:" -ForegroundColor Cyan
 Write-Host "  docker compose logs -f" -ForegroundColor White
 Write-Host ""
+

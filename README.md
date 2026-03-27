@@ -1,448 +1,650 @@
-# MediSafe-MAS v3 — Industrial Multi-Agent Clinical Decision Support System
+# MediSafe-MAS v3 - Multi-Agent Clinical Decision Support System
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Docker](https://img.shields.io/badge/Docker-Required-blue.svg)](https://www.docker.com/)
-[![N8N](https://img.shields.io/badge/N8N-Workflow-orange.svg)](https://n8n.io/)
-
-**MediSafe-MAS v3** is a production-grade, multi-agent clinical AI system built with n8n, Ollama (local LLMs), Qdrant (vector database), and PostgreSQL. It provides evidence-based clinical decision support with full audit logging, EU AI Act compliance checks, and RAG-enhanced reasoning.
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    MediSafe-MAS v3 Pipeline                      │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  🏥 Patient Input → 🔒 Validator → 📊 Audit Log (PostgreSQL)   │
-│                          ↓                                       │
-│              🔬 Feature Extraction Agent                         │
-│                   (Ollama: llama3.2)                            │
-│                   • ICD-10 Lookup Tool                          │
-│                   • NEWS2 Calculator Tool                       │
-│                          ↓                                       │
-│              🧠 Differential Diagnosis Agent                     │
-│                   (Ollama: llama3.1:8b)                         │
-│                   • Clinical Guidelines RAG (Qdrant)            │
-│                   • Similar Case Retrieval (Qdrant)             │
-│                   • ICD-10 Verification                         │
-│                          ↓                                       │
-│              ⚠️ Risk Stratification Agent                        │
-│                   (Ollama: llama3.1:8b)                         │
-│                   • Drug Interaction Checker (RxNav API)        │
-│                   • HEART Score Calculator                      │
-│                   • Manchester Triage System                    │
-│                          ↓                                       │
-│              🛡️ Safety & Compliance Agent                        │
-│                   (Ollama: llama3.2:1b)                         │
-│                   • EU AI Act Compliance                        │
-│                   • Hallucination Detection                     │
-│                   • Bias & Omission Checks                      │
-│                          ↓                                       │
-│              📋 Clinical Report Synthesizer                      │
-│                   (Ollama: mistral:7b)                          │
-│                   • Safety Gate Enforcement                     │
-│                   • Human-Readable Report                       │
-│                          ↓                                       │
-│                   📊 Final Audit Log                            │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## ✨ Features
-
-- **🤖 Multi-Agent Architecture**: 5 specialized AI agents with distinct roles
-- **📚 RAG-Enhanced Reasoning**: Clinical guidelines & case precedents via Qdrant
-- **🔧 Clinical Tools**: NEWS2, HEART score, ICD-10 lookup, drug interactions
-- **🛡️ Safety-First Design**: EU AI Act compliance, hallucination detection, bias checks
-- **📊 Full Audit Trail**: PostgreSQL logging at every pipeline stage
-- **🦙 Local LLMs**: Ollama-powered (llama3.2, llama3.1, mistral) - no API costs
-- **🔒 Prompt Injection Protection**: Input validation with security heuristics
-- **⚕️ Manchester Triage System**: Evidence-based 5-level triage (IMMEDIATE → ROUTINE)
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- **Docker Desktop** (with Docker Compose)
-- **Python 3.8+** (for vector data upload)
-- **8GB+ RAM** recommended (16GB for GPU mode)
-- **20GB+ disk space** (for Ollama models)
-
-### Installation
-
-#### Windows (PowerShell)
-
-```powershell
-# Clone the repository
-git clone <repository-url>
-cd N8N_AgenticAI_WiseAI
-
-# Run the automated deployment script
-.\start-medisafe.ps1
-```
-
-#### Linux/macOS (Bash)
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd N8N_AgenticAI_WiseAI
-
-# Make script executable and run
-chmod +x start-medisafe.sh
-./start-medisafe.sh
-```
-
-The deployment script will:
-1. ✅ Validate prerequisites (Docker, Python)
-2. 🔐 Generate secure encryption keys
-3. 🐳 Start all Docker services
-4. 📊 Initialize PostgreSQL audit database
-5. 📥 Pull required Ollama models (llama3.2, llama3.1, mistral, nomic-embed-text)
-6. 📚 Upload clinical guidelines & cases to Qdrant
-
-### Manual Setup (Advanced)
-
-<details>
-<summary>Click to expand manual setup instructions</summary>
-
-#### 1. Configure Environment
-
-```bash
-# Copy and edit .env file
-cp .env.example .env
-
-# Generate encryption keys (Linux/macOS)
-openssl rand -base64 32  # Use for N8N_ENCRYPTION_KEY
-openssl rand -base64 32  # Use for N8N_USER_MANAGEMENT_JWT_SECRET
-
-# Generate encryption keys (Windows PowerShell)
-[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
-```
-
-Edit `.env` and set the generated keys.
-
-#### 2. Start Docker Services
-
-```bash
-# For CPU-only systems
-docker compose --profile cpu up -d
-
-# For NVIDIA GPU systems
-docker compose --profile gpu-nvidia up -d
-
-# For AMD GPU systems
-docker compose --profile gpu-amd up -d
-```
-
-#### 3. Initialize Database
-
-```bash
-# Wait for PostgreSQL to be ready
-docker exec postgres pg_isready -U n8n_user -d n8n
-
-# Initialize schema
-docker exec -i postgres psql -U n8n_user -d n8n < init-db.sql
-```
-
-#### 4. Pull Ollama Models
-
-```bash
-docker exec ollama ollama pull llama3.2:latest
-docker exec ollama ollama pull llama3.1:8b
-docker exec ollama ollama pull mistral:7b
-docker exec ollama ollama pull nomic-embed-text:latest
-```
-
-#### 5. Upload Vector Data
-
-```bash
-# Install Python dependencies
-pip install requests
-
-# Upload clinical guidelines and cases to Qdrant
-python upload-vectors.py
-```
-
-</details>
-
-## 🌐 Access Points
-
-After deployment, access the following services:
-
-| Service | URL | Credentials |
-|---------|-----|-------------|
-| **N8N Workflow UI** | http://localhost:5678 | Set on first access |
-| **Qdrant Dashboard** | http://localhost:6333/dashboard | No auth required |
-| **Portainer** | https://localhost:9443 | Set on first access |
-| **PostgreSQL** | `localhost:5433` | See `.env` file |
-
-## 📖 Usage
-
-### 1. Access N8N
-
-Open http://localhost:5678 in your browser. The MediSafe-MAS v3 workflow should be auto-imported.
-
-### 2. Activate Workflow
-
-- Click on the **"🏥 Patient Input"** workflow
-- Click the **"Active"** toggle in the top-right corner
-- The workflow is now ready to receive clinical inputs
-
-### 3. Test with Clinical Input
-
-Click the **"Test Workflow"** button and enter a clinical scenario:
-
-**Example Input:**
-```
-67-year-old male presenting with crushing central chest pain radiating to left arm, 
-onset 2 hours ago. Associated with diaphoresis and nausea. 
-History: Hypertension, Type 2 Diabetes, ex-smoker (30 pack-years).
-Medications: Metformin 1000mg BD, Ramipril 10mg OD, Atorvastatin 40mg ON.
-Vitals: BP 145/92, HR 98, RR 22, SpO2 94% on air, Temp 37.1°C.
-ECG shows ST elevation in leads II, III, aVF.
-```
-
-### 4. Review Output
-
-The system will generate a comprehensive clinical report including:
-- ✅ **Safety Score** (0-10)
-- 🚨 **Triage Level** (IMMEDIATE/URGENT/STANDARD/NON-URGENT/ROUTINE)
-- 🔬 **Differential Diagnoses** (with ICD-10 codes, confidence, evidence)
-- 💊 **Drug Interaction Alerts**
-- ⚡ **Immediate Actions & Workup**
-- 📊 **Clinical Scores** (NEWS2, HEART if applicable)
-
-## 🔧 Configuration
-
-### GPU Acceleration
-
-Edit `.env` and set:
-```bash
-# For NVIDIA GPUs
-COMPOSE_PROFILES=gpu-nvidia
-
-# For AMD GPUs
-COMPOSE_PROFILES=gpu-amd
-```
-
-Then restart services:
-```bash
-docker compose --profile gpu-nvidia down
-docker compose --profile gpu-nvidia up -d
-```
-
-### Ollama Model Selection
-
-Edit the workflow in N8N to change models:
-- **Feature Extraction**: llama3.2:latest (fast, accurate)
-- **Diagnosis**: llama3.1:8b (balanced reasoning)
-- **Triage**: llama3.1:8b (clinical scoring)
-- **Safety**: llama3.2:1b (lightweight compliance checks)
-- **Synthesizer**: mistral:7b (excellent report generation)
-
-### Custom Clinical Data
-
-Add your own clinical guidelines and cases:
-
-1. Edit `sample-guidelines.json` and `sample-cases.json`
-2. Re-run the vector upload:
-   ```bash
-   python upload-vectors.py
-   ```
-
-## 📊 Monitoring & Audit
-
-### View Audit Logs
-
-```sql
--- Connect to PostgreSQL
-docker exec -it postgres psql -U n8n_user -d n8n
-
--- Recent audit entries
-SELECT * FROM medisafe_audit_log ORDER BY timestamp DESC LIMIT 10;
-
--- Daily safety metrics
-SELECT * FROM v_safety_metrics LIMIT 7;
-
--- Pipeline performance
-SELECT * FROM v_pipeline_performance LIMIT 10;
-
--- Cases requiring review (safety score < 7)
-SELECT case_id, safety_score, quality_badge, timestamp
-FROM medisafe_audit_log
-WHERE stage = 'SAFETY_EVALUATED' AND safety_score < 7
-ORDER BY timestamp DESC;
-```
-
-### View Container Logs
-
-```bash
-# All services
-docker compose logs -f
-
-# Specific service
-docker compose logs -f n8n
-docker compose logs -f ollama
-docker compose logs -f qdrant
-docker compose logs -f postgres
-```
-
-## 🛠️ Troubleshooting
-
-### Services Not Starting
-
-```bash
-# Check Docker status
-docker ps
-
-# Restart all services
-docker compose --profile cpu down
-docker compose --profile cpu up -d
-
-# Check logs for errors
-docker compose logs
-```
-
-### Ollama Models Not Loading
-
-```bash
-# Verify models are pulled
-docker exec ollama ollama list
-
-# Manually pull a model
-docker exec ollama ollama pull llama3.2:latest
-
-# Check Ollama logs
-docker logs ollama
-```
-
-### Qdrant Collections Empty
-
-```bash
-# Re-run vector upload
-python upload-vectors.py
-
-# Verify collections
-curl http://localhost:6333/collections
-```
-
-### PostgreSQL Connection Issues
-
-```bash
-# Check PostgreSQL is ready
-docker exec postgres pg_isready -U n8n_user -d n8n
-
-# Re-initialize database
-docker exec -i postgres psql -U n8n_user -d n8n < init-db.sql
-```
-
-### N8N Workflow Not Imported
-
-```bash
-# Check n8n-import container logs
-docker logs n8n-import
-
-# Manually import workflow
-# 1. Open N8N at http://localhost:5678
-# 2. Click "Import from File"
-# 3. Select: n8n/demo-data/workflows/MediSafe-MAS-v3.json
-```
-
-## 🔒 Security Considerations
-
-### Production Deployment
-
-Before deploying to production:
-
-1. **Change default passwords** in `.env`
-2. **Use strong encryption keys** (32+ bytes random)
-3. **Enable HTTPS** with reverse proxy (nginx, Traefik)
-4. **Restrict network access** (firewall rules, VPN)
-5. **Enable authentication** for Qdrant and Portainer
-6. **Regular backups** of PostgreSQL and Qdrant data
-7. **Monitor audit logs** for security events
-
-### HIPAA/GDPR Compliance
-
-⚠️ **Important**: This system processes clinical data. Ensure compliance with:
-- **HIPAA** (US): Encrypt data at rest and in transit, access controls, audit logs
-- **GDPR** (EU): Data minimization, right to erasure, consent management
-- **EU AI Act**: High-risk AI system requirements (human oversight, transparency)
-
-### Prompt Injection Protection
-
-The system includes basic prompt injection detection. For production:
-- Review `🔒 Input Validator & Case ID` node logic
-- Add additional security patterns
-- Consider rate limiting and IP filtering
-
-## 📚 Documentation
-
-- **Workflow Design**: See `SETUP_MEDISAFE_V3.md`
-- **Deployment Guide**: See `DEPLOY.md`
-- **Database Schema**: See `init-db.sql`
-- **Vector Upload**: See `upload-vectors.py`
-
-## 🧪 Testing
-
-### Sample Test Cases
-
-The system includes sample clinical cases in `sample-cases.json`:
-- Acute Myocardial Infarction (STEMI)
-- Pulmonary Embolism
-- Septic Shock
-- Diabetic Ketoacidosis
-- Acute Appendicitis
-- And more...
-
-### Integration Testing
-
-```bash
-# Test Qdrant search
-curl -X POST http://localhost:6333/collections/clinical_guidelines/points/search \
-  -H "Content-Type: application/json" \
-  -d '{"vector": [0.1, 0.2, ...], "limit": 3}'
-
-# Test PostgreSQL
-docker exec postgres psql -U n8n_user -d n8n -c "SELECT COUNT(*) FROM medisafe_audit_log;"
-
-# Test Ollama
-curl http://localhost:11434/api/generate -d '{"model": "llama3.2", "prompt": "Test"}'
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## ⚠️ Disclaimer
-
-**MediSafe-MAS v3 is a research prototype for clinical decision support.**
-
-- ❌ **NOT a medical device** (not FDA/CE approved)
-- ❌ **NOT a substitute for clinical judgment**
-- ✅ **Requires human oversight** by licensed medical professionals
-- ✅ **All outputs must be validated** before clinical use
-
-This system is designed to **assist**, not **replace**, healthcare providers.
-
-## 📞 Support
-
-For issues, questions, or contributions:
-- Open an issue on GitHub
-- Review existing documentation
-- Check troubleshooting section above
+**WiseAI 2026 Self-Training Framework**  
+*By Mokhtar Sellami*
 
 ---
 
-**Built with ❤️ for safer clinical decision-making**
+## 🎯 Overview
 
-*Powered by: n8n • Ollama • Qdrant • PostgreSQL*
+MediSafe-MAS v3 is an advanced multi-agent clinical decision support system powered by local LLMs (Ollama), vector search (Qdrant), and workflow automation (n8n). This system provides intelligent clinical analysis, differential diagnosis, risk stratification, and safety compliance checking - all running locally with full data privacy.
+
+### Key Features
+
+- 🤖 **Multi-Agent Architecture** - Specialized agents for feature extraction, diagnosis, risk assessment, and safety compliance
+- 🔒 **100% Local & Private** - All processing happens on your infrastructure
+- 📊 **PostgreSQL Audit Logging** - Complete traceability of all clinical decisions
+- 🧠 **RAG-Enhanced** - Retrieval-Augmented Generation using clinical guidelines
+- 🛠️ **Clinical Tools** - ICD-10 lookup, NEWS2 calculator, HEART score, drug interaction checker
+- 🎨 **Clean Architecture** - Professional folder structure with separation of concerns
+
+---
+
+## 📋 Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Deploying the Workflow](#deploying-the-workflow)
+- [Accessing Services](#accessing-services)
+- [Using the System](#using-the-system)
+- [Troubleshooting](#troubleshooting)
+- [Architecture](#architecture)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## 🔧 Prerequisites
+
+### Required Software
+
+- **Docker** (v20.10+) and **Docker Compose** (v2.0+)
+- **Python 3.8+** (for vector data upload)
+- **Git** (for cloning the repository)
+
+### Hardware Requirements
+
+**Minimum:**
+- CPU: 4 cores
+- RAM: 8 GB
+- Storage: 20 GB free space
+
+**Recommended:**
+- CPU: 8+ cores (or GPU for faster inference)
+- RAM: 16+ GB
+- Storage: 50+ GB SSD
+- GPU: NVIDIA (CUDA) or AMD (ROCm) for accelerated inference
+
+### Operating Systems
+
+- ✅ Linux (Ubuntu 20.04+, Debian 11+)
+- ✅ macOS (Intel or Apple Silicon)
+- ✅ Windows 10/11 (with WSL2 recommended)
+
+---
+
+## 🚀 Quick Start
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/N8N_AgenticAI_WiseAI.git
+cd N8N_AgenticAI_WiseAI
+```
+
+### 2. Configure Environment
+
+```bash
+# Copy the environment template
+cp config/.env.example .env
+
+# Edit .env with your settings
+nano .env  # or use your preferred editor
+```
+
+**Important:** Update these values in `.env`:
+- `POSTGRES_USER` and `POSTGRES_PASSWORD` - Database credentials
+- `N8N_ENCRYPTION_KEY` - Generate with: `openssl rand -base64 32`
+- `N8N_USER_MANAGEMENT_JWT_SECRET` - Generate with: `openssl rand -base64 32`
+
+### 3. Deploy the System
+
+**Linux/macOS:**
+```bash
+chmod +x scripts/deploy/start-medisafe.sh
+./scripts/deploy/start-medisafe.sh
+```
+
+**Windows (PowerShell):**
+```powershell
+.\scripts\deploy\start-medisafe.ps1
+```
+
+### 4. Access the System
+
+Once deployment completes, access:
+
+- **n8n Workflow Editor**: http://localhost:5678
+- **Qdrant Dashboard**: http://localhost:6333/dashboard
+- **Portainer (Docker Management)**: http://localhost:9000
+
+---
+
+## 📦 Installation
+
+### Step 1: Install Docker
+
+**Ubuntu/Debian:**
+```bash
+./scripts/deploy/install-docker.sh
+```
+
+**Other Systems:**
+- Follow official Docker installation: https://docs.docker.com/get-docker/
+
+### Step 2: Verify Installation
+
+```bash
+docker --version
+docker compose version
+python3 --version
+```
+
+### Step 3: Configure Environment Variables
+
+Edit the `.env` file in the project root:
+
+```bash
+# PostgreSQL Configuration
+POSTGRES_USER=root
+POSTGRES_PASSWORD=your_secure_password
+POSTGRES_DB=n8n
+
+# N8N Configuration
+N8N_PORT=5678
+N8N_HOST=localhost
+
+# Security Keys (generate with: openssl rand -base64 32)
+N8N_ENCRYPTION_KEY=your_generated_key_here
+N8N_USER_MANAGEMENT_JWT_SECRET=your_generated_jwt_secret_here
+
+# Ollama Configuration
+OLLAMA_HOST=ollama:11434
+
+# Qdrant Configuration
+QDRANT_URL=http://qdrant:6333
+
+# Docker Compose Profile (cpu, gpu-nvidia, or gpu-amd)
+COMPOSE_PROFILES=cpu
+```
+
+### Step 4: Choose Hardware Profile
+
+**CPU-only (default):**
+```bash
+export COMPOSE_PROFILES=cpu
+```
+
+**NVIDIA GPU:**
+```bash
+export COMPOSE_PROFILES=gpu-nvidia
+```
+
+**AMD GPU:**
+```bash
+export COMPOSE_PROFILES=gpu-amd
+```
+
+---
+
+## ⚙️ Configuration
+
+### Database Configuration
+
+PostgreSQL is used for:
+- n8n workflow data
+- Clinical audit logs
+- Session tracking
+
+Default credentials (change in `.env`):
+- User: `root`
+- Password: `password`
+- Database: `n8n`
+
+### Vector Store Configuration
+
+Qdrant stores:
+- Clinical guidelines embeddings
+- Case history embeddings
+- Retrieved context for RAG
+
+Collections created automatically:
+- `clinical_guidelines`
+- `clinical_cases`
+
+### LLM Configuration
+
+Ollama models pulled automatically:
+- `llama3.2:latest` - Main reasoning model
+- `nomic-embed-text:latest` - Embedding model
+
+To use different models, edit `scripts/deploy/start-medisafe.sh` (lines 215-218).
+
+---
+
+## 🔄 Deploying the Workflow
+
+### Automatic Import (Recommended)
+
+The deployment script automatically imports:
+- ✅ Workflow: `workflows/medisafe-mas-v3/MediSafe-MAS-v3.json`
+- ✅ Credentials: PostgreSQL, Ollama, Qdrant
+
+### Manual Import
+
+If automatic import fails:
+
+1. **Access n8n**: http://localhost:5678
+
+2. **Create Credentials:**
+   - Go to **Settings** → **Credentials**
+   - Add **PostgreSQL** credential:
+     - Host: `postgres`
+     - Port: `5432`
+     - Database: `n8n`
+     - User: `root` (or your configured user)
+     - Password: `password` (or your configured password)
+   
+   - Add **Ollama** credential:
+     - Base URL: `http://ollama:11434`
+   
+   - Add **Qdrant** credential:
+     - URL: `http://qdrant:6333`
+
+3. **Import Workflow:**
+   - Click **Workflows** → **Import from File**
+   - Select: `workflows/medisafe-mas-v3/MediSafe-MAS-v3.json`
+   - Click **Import**
+
+4. **Activate Workflow:**
+   - Open the imported workflow
+   - Click **Active** toggle in top-right
+   - Workflow is now ready to receive requests
+
+### Workflow Configuration
+
+The workflow includes these agents:
+
+1. **Feature Extraction Agent** - Extracts clinical features from patient data
+2. **Differential Diagnosis Agent** - Generates possible diagnoses with probabilities
+3. **Risk Stratification Agent** - Calculates NEWS2, HEART scores, and risk levels
+4. **Safety & Compliance Agent** - Checks drug interactions and contraindications
+5. **Clinical Report Synthesizer** - Generates final structured report
+
+---
+
+## 🌐 Accessing Services
+
+### n8n Workflow Editor
+
+**URL:** http://localhost:5678
+
+**First-time Setup:**
+1. Create admin account (first user becomes admin)
+2. Set email and password
+3. Access workflow editor
+
+**Features:**
+- Visual workflow editor
+- Execution history
+- Credential management
+- Webhook endpoints
+
+### Qdrant Vector Database
+
+**URL:** http://localhost:6333/dashboard
+
+**Features:**
+- Collection browser
+- Vector search testing
+- Cluster monitoring
+- Point inspection
+
+### Portainer (Docker Management)
+
+**URL:** http://localhost:9000
+
+**First-time Setup:**
+1. Create admin password
+2. Select "Docker" environment
+3. Connect to local Docker
+
+**Features:**
+- Container management
+- Log viewing
+- Resource monitoring
+- Volume management
+
+### PostgreSQL Database
+
+**Connection Details:**
+- Host: `localhost`
+- Port: `5432`
+- Database: `n8n`
+- User: `root` (or configured)
+- Password: `password` (or configured)
+
+**Access via CLI:**
+```bash
+docker exec -it postgres psql -U root -d n8n
+```
+
+**View Audit Logs:**
+```sql
+SELECT * FROM medisafe_audit_log ORDER BY created_at DESC LIMIT 10;
+```
+
+---
+
+## 🎮 Using the System
+
+### Test the Workflow
+
+1. **Via n8n Interface:**
+   - Open workflow in n8n
+   - Click **Execute Workflow**
+   - Provide test patient data
+   - View results in execution panel
+
+2. **Via Webhook (API):**
+
+```bash
+curl -X POST http://localhost:5678/webhook/medisafe-clinical-analysis \
+  -H "Content-Type: application/json" \
+  -d '{
+    "patient_id": "P12345",
+    "age": 65,
+    "gender": "M",
+    "chief_complaint": "Chest pain radiating to left arm",
+    "vital_signs": {
+      "bp": "150/95",
+      "hr": 95,
+      "rr": 18,
+      "temp": 37.2,
+      "spo2": 96
+    },
+    "history": "Hypertension, Type 2 Diabetes",
+    "medications": ["Metformin 1000mg", "Lisinopril 10mg"]
+  }'
+```
+
+3. **Expected Response:**
+
+```json
+{
+  "case_id": "CASE-20260327-001",
+  "patient_id": "P12345",
+  "timestamp": "2026-03-27T01:00:00Z",
+  "differential_diagnosis": [
+    {
+      "condition": "Acute Coronary Syndrome",
+      "probability": 0.75,
+      "icd10": "I24.9"
+    }
+  ],
+  "risk_scores": {
+    "NEWS2": 3,
+    "HEART": 6,
+    "risk_level": "MODERATE"
+  },
+  "safety_alerts": [],
+  "recommendations": [
+    "Immediate ECG",
+    "Troponin levels",
+    "Cardiology consult"
+  ]
+}
+```
+
+### Upload Custom Clinical Data
+
+Add your own guidelines and cases:
+
+1. **Edit Data Files:**
+   - Guidelines: `data/guidelines/sample-guidelines.json`
+   - Cases: `data/cases/sample-cases.json`
+
+2. **Upload to Qdrant:**
+
+```bash
+python3 scripts/data/upload-vectors.py
+```
+
+3. **Verify Upload:**
+   - Visit http://localhost:6333/dashboard
+   - Check collections: `clinical_guidelines`, `clinical_cases`
+
+---
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### 1. Docker Services Won't Start
+
+**Symptom:** `docker compose up` fails
+
+**Solutions:**
+```bash
+# Check Docker is running
+docker ps
+
+# Check logs
+docker compose -f config/docker-compose.yml logs
+
+# Restart Docker daemon
+sudo systemctl restart docker  # Linux
+```
+
+#### 2. PostgreSQL Connection Failed
+
+**Symptom:** n8n can't connect to database
+
+**Solutions:**
+```bash
+# Check PostgreSQL is running
+docker ps | grep postgres
+
+# Check environment variables
+cat .env | grep POSTGRES
+
+# Restart PostgreSQL
+docker compose -f config/docker-compose.yml restart postgres
+```
+
+#### 3. Ollama Models Not Loading
+
+**Symptom:** LLM requests timeout
+
+**Solutions:**
+```bash
+# Check Ollama container
+docker logs ollama
+
+# Manually pull models
+docker exec ollama ollama pull llama3.2:latest
+docker exec ollama ollama pull nomic-embed-text:latest
+
+# Verify models
+docker exec ollama ollama list
+```
+
+#### 4. Qdrant Collections Empty
+
+**Symptom:** No search results from RAG
+
+**Solutions:**
+```bash
+# Re-upload vector data
+python3 scripts/data/upload-vectors.py
+
+# Check collections via API
+curl http://localhost:6333/collections
+```
+
+#### 5. n8n Workflow Import Fails
+
+**Symptom:** Cannot import workflow JSON
+
+**Solutions:**
+1. Ensure n8n is fully started (wait 30 seconds after container starts)
+2. Import manually via n8n UI
+3. Check workflow JSON is valid
+4. Verify credentials are created first
+
+### Getting Help
+
+- **Documentation:** See `docs/` folder for detailed guides
+- **Logs:** Check container logs with `docker compose logs <service>`
+- **Community:** Open an issue on GitHub
+- **Author:** Contact Mokhtar Sellami for WiseAI 2026 support
+
+---
+
+## 🏗️ Architecture
+
+### System Components
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        User / API                           │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    n8n Workflow Engine                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │   Feature    │  │ Differential │  │     Risk     │     │
+│  │  Extraction  │→ │  Diagnosis   │→ │Stratification│     │
+│  └──────────────┘  └──────────────┘  └──────────────┘     │
+│         │                  │                  │             │
+│         ▼                  ▼                  ▼             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │    Safety    │  │   Clinical   │  │  PostgreSQL  │     │
+│  │  Compliance  │→ │    Report    │→ │ Audit Logger │     │
+│  └──────────────┘  └──────────────┘  └──────────────┘     │
+└─────────────┬───────────────┬───────────────┬─────────────┘
+              │               │               │
+              ▼               ▼               ▼
+    ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+    │   Ollama    │  │   Qdrant    │  │ PostgreSQL  │
+    │ (LLM/Embed) │  │  (Vectors)  │  │   (Audit)   │
+    └─────────────┘  └─────────────┘  └─────────────┘
+```
+
+### Project Structure
+
+```
+N8N_AgenticAI_WiseAI/
+├── config/                  # Configuration files
+│   ├── docker-compose.yml   # Docker orchestration
+│   ├── .env.example         # Environment template
+│   └── database/
+│       └── init-db.sql      # PostgreSQL schema
+│
+├── scripts/                 # Automation scripts
+│   ├── deploy/
+│   │   ├── start-medisafe.sh    # Linux/macOS deployment
+│   │   ├── start-medisafe.ps1   # Windows deployment
+│   │   └── install-docker.sh    # Docker installer
+│   └── data/
+│       └── upload-vectors.py    # Vector data uploader
+│
+├── workflows/               # n8n workflows
+│   ├── medisafe-mas-v3/
+│   │   └── MediSafe-MAS-v3.json # Main workflow
+│   ├── archive/             # Previous versions
+│   └── tools/
+│       └── icd10-lookup-tool.js # Clinical tools
+│
+├── data/                    # Clinical data
+│   ├── guidelines/
+│   │   └── sample-guidelines.json
+│   └── cases/
+│       └── sample-cases.json
+│
+├── docs/                    # Documentation
+│   ├── QUICKSTART.md
+│   ├── DEPLOY.md
+│   └── SETUP_MEDISAFE_V3.md
+│
+├── n8n/                     # n8n runtime data
+│   └── demo-data/
+│       ├── credentials/     # Auto-import credentials
+│       └── workflows/       # Auto-import workflows
+│
+├── .env                     # Environment variables (gitignored)
+└── README.md                # This file
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions to improve MediSafe-MAS v3!
+
+### How to Contribute
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+
+- Follow clean architecture principles
+- Add tests for new features
+- Update documentation
+- Ensure all scripts are cross-platform compatible
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 👨‍💻 Author
+
+**Mokhtar Sellami**  
+WiseAI 2026 Self-Training Framework
+
+- 🌐 Website: [Your Website]
+- 📧 Email: [Your Email]
+- 💼 LinkedIn: [Your LinkedIn]
+- 🐙 GitHub: [Your GitHub]
+
+---
+
+## 🙏 Acknowledgments
+
+- **n8n** - Workflow automation platform
+- **Ollama** - Local LLM inference
+- **Qdrant** - Vector similarity search
+- **PostgreSQL** - Reliable database system
+- **Docker** - Containerization platform
+
+---
+
+## ⚠️ Disclaimer
+
+**IMPORTANT:** MediSafe-MAS v3 is a research and educational tool. It is **NOT** intended for:
+- Clinical diagnosis or treatment decisions
+- Replacing professional medical judgment
+- Use in production healthcare environments without proper validation
+- Emergency medical situations
+
+Always consult qualified healthcare professionals for medical advice and decisions.
+
+---
+
+## 📊 Project Status
+
+- ✅ Core multi-agent workflow
+- ✅ RAG integration with Qdrant
+- ✅ PostgreSQL audit logging
+- ✅ Clinical tools (ICD-10, NEWS2, HEART)
+- ✅ Docker deployment automation
+- ✅ Clean architecture migration
+- 🔄 Advanced safety checks (in progress)
+- 🔄 FHIR integration (planned)
+- 🔄 Multi-language support (planned)
+
+---
+
+**Built with ❤️ by WiseAI 2026**  
+*Empowering Clinical Intelligence through Local AI*

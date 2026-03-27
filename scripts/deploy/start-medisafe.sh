@@ -126,8 +126,11 @@ fi
 # ── Step 3: Start Docker Services ──
 echo -e "\n${YELLOW}[3/7] Starting Docker services (profile: $PROFILE)...${NC}"
 
+# Navigate to project root and use config/docker-compose.yml
+cd "$(dirname "$0")/../.."
+
 # Use --env-file to explicitly pass .env to Docker Compose
-if docker compose --env-file .env --profile "$PROFILE" up -d; then
+if docker compose -f config/docker-compose.yml --env-file .env --profile "$PROFILE" up -d; then
     echo -e "  ${GREEN}✅ Docker services started${NC}"
 else
     echo -e "  ${RED}❌ Failed to start Docker services${NC}"
@@ -189,11 +192,18 @@ if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
     exit 1
 fi
 
-# ── Step 5: Initialize Database ──
+# ── Step 5: Initialize PostgreSQL Database ──
 echo -e "\n${YELLOW}[5/7] Initializing PostgreSQL database...${NC}"
 
-if docker exec -i postgres psql -U n8n_user -d n8n < init-db.sql &> /dev/null; then
-    echo -e "  ${GREEN}✅ Database schema created${NC}"
+# Wait a bit more for PostgreSQL to be fully ready
+sleep 5
+
+# Copy init script to container and execute
+docker cp config/database/init-db.sql n8n_agenticai_wiseai-postgres-1:/tmp/init-db.sql
+
+# Initialize database schema
+if docker exec n8n_agenticai_wiseai-postgres-1 psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /tmp/init-db.sql 2>/dev/null; then
+    echo -e "  ${GREEN}✅ Database initialized${NC}"
 else
     echo -e "  ${YELLOW}⚠️  Database may already be initialized${NC}"
 fi
@@ -223,17 +233,16 @@ fi
 
 # ── Step 7: Upload Vector Data ──
 if [ "$SKIP_VECTOR_UPLOAD" = false ]; then
-    echo -e "\n${YELLOW}[7/7] Uploading vector data to Qdrant...${NC}"
+    echo -e "\n${YELLOW}[7/7] Uploading clinical data to Qdrant...${NC}"
     
-    # Install Python dependencies
-    echo -e "  ${CYAN}📦 Installing Python dependencies...${NC}"
-    python3 -m pip install --quiet requests 2> /dev/null || true
-    
-    # Run upload script
-    if python3 upload-vectors.py; then
-        echo -e "  ${GREEN}✅ Vector data uploaded successfully${NC}"
+    if command -v python3 &> /dev/null; then
+        if python3 scripts/data/upload-vectors.py; then
+            echo -e "  ${GREEN}✅ Vector data uploaded${NC}"
+        else
+            echo -e "  ${YELLOW}⚠️  Vector upload failed (you can run scripts/data/upload-vectors.py manually later)${NC}"
+        fi
     else
-        echo -e "  ${YELLOW}⚠️  Vector upload had issues${NC}"
+        echo -e "  ${YELLOW}⚠️  Python3 not found. Run scripts/data/upload-vectors.py manually after deployment${NC}"
     fi
 else
     echo -e "\n${YELLOW}[7/7] Skipping vector data upload${NC}"
@@ -258,3 +267,4 @@ echo -e "  docker compose --profile $PROFILE down"
 echo -e "\n${CYAN}To view logs:${NC}"
 echo -e "  docker compose logs -f"
 echo ""
+
