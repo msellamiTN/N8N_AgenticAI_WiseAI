@@ -4,9 +4,11 @@
 
 ```
 N8N_AgenticAI_WiseAI/
+├── .env                             # Environment variables (root)
+├── docker-compose.yml               # Docker orchestration (root)
+│
 ├── config/                          # Configuration Layer
 │   ├── .env.example
-│   ├── docker-compose.yml
 │   └── database/
 │       └── init-db.sql
 │
@@ -84,7 +86,7 @@ N8N_AgenticAI_WiseAI/
 ### Direct Docker Compose
 
 ```bash
-docker compose -f config/docker-compose.yml --env-file .env --profile cpu up -d
+docker compose --env-file .env --profile cpu up -d
 ```
 
 ## 📝 Key Changes
@@ -93,7 +95,9 @@ docker compose -f config/docker-compose.yml --env-file .env --profile cpu up -d
 
 | Component | Old Path | New Path |
 |-----------|----------|----------|
-| Docker Compose | `./docker-compose.yml` | `config/docker-compose.yml` |
+| Docker Compose | `./docker-compose.yml` | `./docker-compose.yml` (stays in root) |
+| Environment File | `./.env` | `./.env` (stays in root) |
+| Env Template | `./.env.example` | `config/.env.example` |
 | Database Init | `./init-db.sql` | `config/database/init-db.sql` |
 | Deployment Scripts | `./start-medisafe.*` | `scripts/deploy/start-medisafe.*` |
 | Vector Upload | `./upload-vectors.py` | `scripts/data/upload-vectors.py` |

@@ -67,14 +67,118 @@ MediSafe-MAS v3 is an advanced multi-agent clinical decision support system powe
 
 ## 🚀 Quick Start
 
-### 1. Clone the Repository
+### 🪟 Windows Quick Start (Recommended)
+
+#### 1. Install Docker Desktop
+
+**Download and Install:**
+1. Download Docker Desktop from: https://www.docker.com/products/docker-desktop/
+2. Run the installer (`Docker Desktop Installer.exe`)
+3. Follow the installation wizard
+4. **Important:** Enable WSL 2 during installation (recommended for better performance)
+5. Restart your computer when prompted
+
+**Verify Installation:**
+```powershell
+# Open PowerShell as Administrator and run:
+docker --version
+docker compose version
+```
+
+Expected output:
+```
+Docker version 24.x.x
+Docker Compose version v2.x.x
+```
+
+**Start Docker Desktop:**
+- Launch Docker Desktop from Start Menu
+- Wait for Docker Engine to start (whale icon in system tray should be steady)
+- Ensure "Docker Desktop is running" appears in the system tray
+
+#### 2. Clone the Repository
+
+```powershell
+# Open PowerShell and navigate to your desired directory
+cd "D:\Data2AI Academy"
+
+# Clone the repository
+git clone https://github.com/yourusername/N8N_AgenticAI_WiseAI.git
+cd N8N_AgenticAI_WiseAI
+```
+
+#### 3. Configure Environment
+
+```powershell
+# Copy the environment template
+Copy-Item config\.env.example .env
+
+# Edit .env with your preferred editor (Notepad, VS Code, etc.)
+notepad .env
+```
+
+**Important:** Update these values in `.env`:
+- `POSTGRES_USER=root`
+- `POSTGRES_PASSWORD=your_secure_password`
+- `N8N_ENCRYPTION_KEY` - Generate with: `openssl rand -base64 32` (or use any 32-character string)
+- `N8N_USER_MANAGEMENT_JWT_SECRET` - Generate with: `openssl rand -base64 32`
+
+**Example `.env` configuration:**
+```env
+POSTGRES_USER=root
+POSTGRES_PASSWORD=password
+POSTGRES_DB=n8n
+N8N_PORT=5678
+N8N_ENCRYPTION_KEY=super-secret-key
+N8N_USER_MANAGEMENT_JWT_SECRET=even-more-secret
+```
+
+#### 4. Deploy with PowerShell
+
+**Open PowerShell as Administrator** and run:
+
+```powershell
+# Navigate to project directory
+cd "D:\Data2AI Academy\N8N_AgenticAI_WiseAI"
+
+# Run the deployment script
+.\scripts\deploy\start-medisafe.ps1
+```
+
+The deployment script will automatically:
+- ✅ Check prerequisites (Docker, Python)
+- ✅ Start all Docker services
+- ✅ Pull Ollama models (llama3.2:latest & nomic-embed-text:latest) - **~2.3GB download**
+- ✅ Initialize PostgreSQL database
+- ✅ Upload clinical data to Qdrant
+
+**Deployment takes 5-10 minutes** depending on your internet speed (first time only).
+
+#### 5. Access the System
+
+Once deployment completes, open your browser:
+
+- **n8n Workflow Editor**: http://localhost:5678
+- **Qdrant Dashboard**: http://localhost:6333/dashboard
+- **Portainer (Docker Management)**: http://localhost:9000
+
+**First-time n8n setup:**
+1. Open http://localhost:5678
+2. Create your admin account
+3. Workflows and credentials are automatically imported!
+
+---
+
+### 🐧 Linux/macOS Quick Start
+
+#### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/yourusername/N8N_AgenticAI_WiseAI.git
 cd N8N_AgenticAI_WiseAI
 ```
 
-### 2. Configure Environment
+#### 2. Configure Environment
 
 ```bash
 # Copy the environment template
@@ -89,20 +193,20 @@ nano .env  # or use your preferred editor
 - `N8N_ENCRYPTION_KEY` - Generate with: `openssl rand -base64 32`
 - `N8N_USER_MANAGEMENT_JWT_SECRET` - Generate with: `openssl rand -base64 32`
 
-### 3. Deploy the System
+#### 3. Deploy the System
 
-**Linux/macOS:**
 ```bash
 chmod +x scripts/deploy/start-medisafe.sh
 ./scripts/deploy/start-medisafe.sh
 ```
 
-**Windows (PowerShell):**
-```powershell
-.\scripts\deploy\start-medisafe.ps1
-```
+The deployment script will automatically:
+- ✅ Start all Docker services
+- ✅ Pull Ollama models (llama3.2 & nomic-embed-text)
+- ✅ Initialize PostgreSQL database
+- ✅ Upload clinical data to Qdrant
 
-### 4. Access the System
+#### 4. Access the System
 
 Once deployment completes, access:
 
@@ -206,11 +310,20 @@ Collections created automatically:
 
 ### LLM Configuration
 
-Ollama models pulled automatically:
-- `llama3.2:latest` - Main reasoning model
-- `nomic-embed-text:latest` - Embedding model
+Ollama models are **automatically pulled during deployment**:
+- `llama3.2:latest` (2GB) - Main reasoning model for clinical analysis
+- `nomic-embed-text:latest` (274MB) - Embedding model for RAG
 
-To use different models, edit `scripts/deploy/start-medisafe.sh` (lines 215-218).
+**Automatic Pulling:**
+The deployment script automatically downloads these models when Ollama starts. No manual intervention required!
+
+**Custom Models:**
+To use different models, edit the model list in:
+- Linux/macOS: `scripts/deploy/start-medisafe.sh` (lines 199-202)
+- Windows: `scripts/deploy/start-medisafe.ps1` (lines 197-200)
+
+**Manual Pulling:**
+If you need to pull models manually, see `docs/PULL_OLLAMA_MODELS.md`
 
 ---
 
@@ -422,7 +535,7 @@ python3 scripts/data/upload-vectors.py
 docker ps
 
 # Check logs
-docker compose -f config/docker-compose.yml logs
+docker compose logs
 
 # Restart Docker daemon
 sudo systemctl restart docker  # Linux
@@ -441,23 +554,65 @@ docker ps | grep postgres
 cat .env | grep POSTGRES
 
 # Restart PostgreSQL
-docker compose -f config/docker-compose.yml restart postgres
+docker compose restart postgres
 ```
 
-#### 3. Ollama Models Not Loading
+#### 3. Windows-Specific Issues
 
-**Symptom:** LLM requests timeout
+**Docker Desktop Not Starting:**
+- Ensure WSL 2 is installed and enabled
+- Check Windows Features: "Virtual Machine Platform" and "Windows Subsystem for Linux" are enabled
+- Restart Docker Desktop from system tray
+- Check Docker Desktop logs: Settings → Troubleshoot → View logs
+
+**PowerShell Execution Policy Error:**
+```powershell
+# If you get "cannot be loaded because running scripts is disabled"
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+**Port Already in Use:**
+```powershell
+# Check what's using port 5678 (or other ports)
+netstat -ano | findstr :5678
+
+# Stop the process (replace PID with actual process ID)
+taskkill /PID <PID> /F
+```
+
+**Docker Compose Command Not Found:**
+- Ensure Docker Desktop is running
+- Restart PowerShell after Docker Desktop installation
+- Use `docker compose` (with space) not `docker-compose` (with hyphen)
+
+**Python Not Found:**
+```powershell
+# Install Python from Microsoft Store or python.org
+# Verify installation
+python --version
+
+# If still not found, add Python to PATH
+```
+
+#### 4. Ollama Models Not Loading
+
+**Symptom:** LLM requests timeout or models not found
+
+**Note:** Models are automatically pulled during deployment. If you're experiencing issues:
 
 **Solutions:**
 ```bash
 # Check Ollama container
 docker logs ollama
 
-# Manually pull models
+# Verify models are installed
+docker exec ollama ollama list
+
+# If models are missing, pull them manually
 docker exec ollama ollama pull llama3.2:latest
 docker exec ollama ollama pull nomic-embed-text:latest
 
-# Verify models
+# Check models again
 docker exec ollama ollama list
 ```
 
@@ -528,45 +683,47 @@ curl http://localhost:6333/collections
 
 ```
 N8N_AgenticAI_WiseAI/
-├── config/                  # Configuration files
-│   ├── docker-compose.yml   # Docker orchestration
-│   ├── .env.example         # Environment template
-│   └── database/
-│       └── init-db.sql      # PostgreSQL schema
+├── .env                         # Environment variables (gitignored)
+├── .gitignore                   # Git ignore rules
+├── docker-compose.yml           # Docker orchestration
+├── README.md                    # Main documentation
 │
-├── scripts/                 # Automation scripts
+├── config/                      # Configuration Layer
+│   ├── .env.example             # Environment template
+│   └── database/
+│       └── init-db.sql          # PostgreSQL schema
+│
+├── scripts/                     # Automation Layer
 │   ├── deploy/
-│   │   ├── start-medisafe.sh    # Linux/macOS deployment
-│   │   ├── start-medisafe.ps1   # Windows deployment
+│   │   ├── start-medisafe.sh    # Linux/macOS deployment (auto-pulls models)
+│   │   ├── start-medisafe.ps1   # Windows deployment (auto-pulls models)
 │   │   └── install-docker.sh    # Docker installer
 │   └── data/
 │       └── upload-vectors.py    # Vector data uploader
 │
-├── workflows/               # n8n workflows
+├── workflows/                   # Application Layer
 │   ├── medisafe-mas-v3/
-│   │   └── MediSafe-MAS-v3.json # Main workflow
-│   ├── archive/             # Previous versions
+│   │   └── MediSafe-MAS-v3.json # Main clinical workflow
+│   ├── archive/                 # Previous workflow versions
 │   └── tools/
 │       └── icd10-lookup-tool.js # Clinical tools
 │
-├── data/                    # Clinical data
+├── data/                        # Data Layer
 │   ├── guidelines/
 │   │   └── sample-guidelines.json
 │   └── cases/
 │       └── sample-cases.json
 │
-├── docs/                    # Documentation
-│   ├── QUICKSTART.md
-│   ├── DEPLOY.md
-│   └── SETUP_MEDISAFE_V3.md
+├── docs/                        # Documentation Layer
+│   ├── PULL_OLLAMA_MODELS.md    # Model pulling guide
+│   ├── QUICKSTART.md            # Quick start guide
+│   ├── DEPLOY.md                # Deployment guide
+│   └── SETUP_MEDISAFE_V3.md     # Setup documentation
 │
-├── n8n/                     # n8n runtime data
-│   └── demo-data/
-│       ├── credentials/     # Auto-import credentials
-│       └── workflows/       # Auto-import workflows
-│
-├── .env                     # Environment variables (gitignored)
-└── README.md                # This file
+└── n8n/                         # Runtime Layer
+    └── demo-data/
+        ├── credentials/         # Auto-import credentials
+        └── workflows/           # Auto-import workflows
 ```
 
 ---

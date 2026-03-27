@@ -119,7 +119,7 @@ Set-Location (Join-Path $PSScriptRoot "../..")
 
 try {
     # Use --env-file to explicitly pass .env to Docker Compose
-    docker compose -f config/docker-compose.yml --env-file .env --profile $Profile up -d
+    docker compose --env-file .env --profile $Profile up -d
     if ($LASTEXITCODE -ne 0) {
         throw "Docker Compose failed"
     }
@@ -190,6 +190,26 @@ if ($retryCount -ge $maxRetries) {
     exit 1
 }
 
+# Pull Ollama Models (immediately after Ollama is ready)
+if (-not $SkipModelPull) {
+    Write-Host "`n  📥 Pulling required Ollama models..." -ForegroundColor Cyan
+    
+    $models = @(
+        "llama3.2:latest",
+        "nomic-embed-text:latest"
+    )
+    
+    foreach ($model in $models) {
+        Write-Host "    Pulling $model..." -ForegroundColor Cyan
+        docker exec ollama ollama pull $model 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "    ✅ $model ready" -ForegroundColor Green
+        } else {
+            Write-Host "    ⚠️  Failed to pull $model (will retry later)" -ForegroundColor Yellow
+        }
+    }
+}
+
 # ── Step 5: Initialize Database ──
 Write-Host "`n[5/7] Initializing PostgreSQL database..." -ForegroundColor Yellow
 
@@ -204,33 +224,9 @@ try {
     Write-Host "  ⚠️  Database initialization had warnings (may already exist)" -ForegroundColor Yellow
 }
 
-# ── Step 6: Pull Ollama Models ──
-if (-not $SkipModelPull) {
-    Write-Host "`n[6/7] Pulling required Ollama models..." -ForegroundColor Yellow
-    
-    $models = @(
-        "llama3.2:latest",
-        "llama3.1:8b",
-        "mistral:7b",
-        "nomic-embed-text:latest"
-    )
-    
-    foreach ($model in $models) {
-        Write-Host "  📥 Pulling $model..." -ForegroundColor Cyan
-        docker exec ollama ollama pull $model
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "  ✅ $model ready" -ForegroundColor Green
-        } else {
-            Write-Host "  ⚠️  Failed to pull $model" -ForegroundColor Yellow
-        }
-    }
-} else {
-    Write-Host "`n[6/7] Skipping Ollama model pull" -ForegroundColor Yellow
-}
-
-# ── Step 7: Upload Vector Data ──
+# ── Step 6: Upload Vector Data ──
 if (-not $SkipVectorUpload) {
-    Write-Host "`n[7/7] Uploading vector data to Qdrant..." -ForegroundColor Yellow
+    Write-Host "`n[6/6] Uploading vector data to Qdrant..." -ForegroundColor Yellow
     
     try {
         # Install Python dependencies
@@ -248,7 +244,7 @@ if (-not $SkipVectorUpload) {
         Write-Host "  ⚠️  Vector upload failed: $_" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "`n[7/7] Skipping vector data upload" -ForegroundColor Yellow
+    Write-Host "`n[6/6] Skipping vector data upload" -ForegroundColor Yellow
 }
 
 # ── Deployment Complete ──

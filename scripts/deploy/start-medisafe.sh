@@ -126,11 +126,11 @@ fi
 # ── Step 3: Start Docker Services ──
 echo -e "\n${YELLOW}[3/7] Starting Docker services (profile: $PROFILE)...${NC}"
 
-# Navigate to project root and use config/docker-compose.yml
+# Navigate to project root
 cd "$(dirname "$0")/../.."
 
 # Use --env-file to explicitly pass .env to Docker Compose
-if docker compose -f config/docker-compose.yml --env-file .env --profile "$PROFILE" up -d; then
+if docker compose --env-file .env --profile "$PROFILE" up -d; then
     echo -e "  ${GREEN}✅ Docker services started${NC}"
 else
     echo -e "  ${RED}❌ Failed to start Docker services${NC}"
@@ -192,6 +192,25 @@ if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
     exit 1
 fi
 
+# Pull Ollama Models (immediately after Ollama is ready)
+if [ "$SKIP_MODEL_PULL" = false ]; then
+    echo -e "\n  ${CYAN}📥 Pulling required Ollama models...${NC}"
+    
+    MODELS=(
+        "llama3.2:latest"
+        "nomic-embed-text:latest"
+    )
+    
+    for MODEL in "${MODELS[@]}"; do
+        echo -e "    ${CYAN}Pulling $MODEL...${NC}"
+        if docker exec ollama ollama pull "$MODEL" > /dev/null 2>&1; then
+            echo -e "    ${GREEN}✅ $MODEL ready${NC}"
+        else
+            echo -e "    ${YELLOW}⚠️  Failed to pull $MODEL (will retry later)${NC}"
+        fi
+    done
+fi
+
 # ── Step 5: Initialize PostgreSQL Database ──
 echo -e "\n${YELLOW}[5/7] Initializing PostgreSQL database...${NC}"
 
@@ -208,32 +227,9 @@ else
     echo -e "  ${YELLOW}⚠️  Database may already be initialized${NC}"
 fi
 
-# ── Step 6: Pull Ollama Models ──
-if [ "$SKIP_MODEL_PULL" = false ]; then
-    echo -e "\n${YELLOW}[6/7] Pulling required Ollama models...${NC}"
-    
-    MODELS=(
-        "llama3.2:latest"
-        "llama3.1:8b"
-        "mistral:7b"
-        "nomic-embed-text:latest"
-    )
-    
-    for MODEL in "${MODELS[@]}"; do
-        echo -e "  ${CYAN}📥 Pulling $MODEL...${NC}"
-        if docker exec ollama ollama pull "$MODEL"; then
-            echo -e "  ${GREEN}✅ $MODEL ready${NC}"
-        else
-            echo -e "  ${YELLOW}⚠️  Failed to pull $MODEL${NC}"
-        fi
-    done
-else
-    echo -e "\n${YELLOW}[6/7] Skipping Ollama model pull${NC}"
-fi
-
-# ── Step 7: Upload Vector Data ──
+# ── Step 6: Upload Vector Data ──
 if [ "$SKIP_VECTOR_UPLOAD" = false ]; then
-    echo -e "\n${YELLOW}[7/7] Uploading clinical data to Qdrant...${NC}"
+    echo -e "\n${YELLOW}[6/6] Uploading clinical data to Qdrant...${NC}"
     
     if command -v python3 &> /dev/null; then
         if python3 scripts/data/upload-vectors.py; then
@@ -245,7 +241,7 @@ if [ "$SKIP_VECTOR_UPLOAD" = false ]; then
         echo -e "  ${YELLOW}⚠️  Python3 not found. Run scripts/data/upload-vectors.py manually after deployment${NC}"
     fi
 else
-    echo -e "\n${YELLOW}[7/7] Skipping vector data upload${NC}"
+    echo -e "\n${YELLOW}[6/6] Skipping vector data upload${NC}"
 fi
 
 # ── Deployment Complete ──
