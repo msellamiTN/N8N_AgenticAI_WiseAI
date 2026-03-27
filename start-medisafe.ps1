@@ -115,7 +115,8 @@ if (Test-Path ".env") {
 Write-Host "`n[3/7] Starting Docker services (profile: $Profile)..." -ForegroundColor Yellow
 
 try {
-    docker compose --profile $Profile up -d
+    # Use --env-file to explicitly pass .env to Docker Compose
+    docker compose --env-file .env --profile $Profile up -d
     if ($LASTEXITCODE -ne 0) {
         throw "Docker Compose failed"
     }
