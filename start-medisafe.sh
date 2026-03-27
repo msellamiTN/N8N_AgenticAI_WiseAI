@@ -110,6 +110,13 @@ if [ -f ".env" ]; then
     else
         echo -e "  ${GREEN}✅ Encryption keys already configured${NC}"
     fi
+    
+    # Export all variables from .env for Docker Compose
+    echo -e "  ${CYAN}📋 Loading environment variables...${NC}"
+    set -a
+    source .env
+    set +a
+    echo -e "  ${GREEN}✅ Environment variables loaded${NC}"
 else
     echo -e "  ${RED}❌ .env file not found!${NC}"
     echo -e "     Run this script from the project root directory"
