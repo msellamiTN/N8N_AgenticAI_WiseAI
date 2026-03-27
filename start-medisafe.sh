@@ -126,7 +126,8 @@ fi
 # ── Step 3: Start Docker Services ──
 echo -e "\n${YELLOW}[3/7] Starting Docker services (profile: $PROFILE)...${NC}"
 
-if docker compose --profile "$PROFILE" up -d; then
+# Use --env-file to explicitly pass .env to Docker Compose
+if docker compose --env-file .env --profile "$PROFILE" up -d; then
     echo -e "  ${GREEN}✅ Docker services started${NC}"
 else
     echo -e "  ${RED}❌ Failed to start Docker services${NC}"
